@@ -2,42 +2,45 @@ import 'dart:developer';
 import 'package:ks_pay/ks_pay.dart';
 import 'package:payu_checkoutpro_flutter/PayUConstantKeys.dart';
 import 'package:payu_checkoutpro_flutter/payu_checkoutpro_flutter.dart';
+import '../payment_service.dart';
 
 /// Service for handling PayU payments.
-class PayUService implements PayUCheckoutProProtocol {
-  static PayUCheckoutProFlutter? _checkoutPro;
-  static Function(PaymentResponse)? _onSuccess;
-  static Function(PaymentError)? _onError;
-  final String hash;
+class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
+  PayUCheckoutProFlutter? _checkoutPro;
+  PaymentSuccessCallback? _onSuccess;
+  PaymentErrorCallback? _onError;
+  String? _hash;
 
-  PayUService({
-    required this.hash,
-  });
+  /// Creates an instance of PayUService
+  PayUService();
 
   /// Initializes the PayU service with callbacks for payment results.
-  static void initialize({
-    required Function(PaymentResponse) onSuccess,
-    required Function(PaymentError) onError,
+  void initialize({
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
     required String hash,
   }) {
     _onSuccess = onSuccess;
     _onError = onError;
-    _checkoutPro = PayUCheckoutProFlutter(PayUService(hash: hash));
+    _hash = hash;
+    _checkoutPro = PayUCheckoutProFlutter(this);
   }
 
   /// Processes a payment through PayU with the provided options.
-  static Future<void> processPayment({
+  @override
+  Future<void> processPayment({
     required Map<String, dynamic> options,
-    required Function(PaymentResponse) onSuccess,
-    required Function(PaymentError) onError,
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
   }) async {
     try {
       // Initialize if not already initialized
       if (_checkoutPro == null) {
         initialize(
-            onSuccess: onSuccess,
-            onError: onError,
-            hash: options['hash'] as String);
+          onSuccess: onSuccess,
+          onError: onError,
+          hash: options['hash'] as String? ?? '',
+        );
       } else {
         _onSuccess = onSuccess;
         _onError = onError;
@@ -62,12 +65,6 @@ class PayUService implements PayUCheckoutProProtocol {
             'https://www.payumoney.com/mobileapp/payumoney/success.php',
         PayUPaymentParamKey.ios_furl: options['furl'] ??
             'https://www.payumoney.com/mobileapp/payumoney/failure.php',
-        PayUPaymentParamKey.additionalParam: {
-          // 'payment_related_details_for_mobile_sdk':
-          //     'payment_related_details_for_mobile_sdk hash',
-          // 'vas_for_mobile_sdk': 'vas_for_mobile_sdk hash',
-          // 'payment': options['hash'] ?? ''
-        },
       };
 
       // Prepare checkout configuration
@@ -90,10 +87,11 @@ class PayUService implements PayUCheckoutProProtocol {
   @override
   generateHash(Map response) async {
     try {
-      var hashName = response[PayUHashConstantsKeys.hashName];
-
-      final Map<String, String> hashResponse = {hashName: hash};
-      _checkoutPro!.hashGenerated(hash: hashResponse);
+      if (_hash != null) {
+        var hashName = response[PayUHashConstantsKeys.hashName];
+        final Map<String, String> hashResponse = {hashName: _hash!};
+        _checkoutPro!.hashGenerated(hash: hashResponse);
+      }
     } catch (e) {
       log('Error generating hash: $e');
       if (_onError != null) {
@@ -163,5 +161,12 @@ class PayUService implements PayUCheckoutProProtocol {
         ),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _checkoutPro = null;
+    _onSuccess = null;
+    _onError = null;
   }
 }

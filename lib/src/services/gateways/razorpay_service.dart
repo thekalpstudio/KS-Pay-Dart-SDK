@@ -1,13 +1,14 @@
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../models/payment_response.dart';
 import '../../models/payment_error.dart';
+import '../payment_service.dart';
 
 /// Service for handling Razorpay payments.
-class RazorpayService {
-  static Razorpay? _razorpay;
+class RazorpayService implements PaymentGateway {
+  Razorpay? _razorpay;
 
   /// Initializes Razorpay and sets up event listeners.
-  static void initialize({
+  void initialize({
     required Function(PaymentResponse) onSuccess,
     required Function(PaymentError) onError,
   }) {
@@ -42,15 +43,26 @@ class RazorpayService {
   }
 
   /// Opens the Razorpay checkout UI with the provided options.
-  static void startPayment(Map<String, dynamic> options) {
+  void startPayment(Map<String, dynamic> options) {
     if (_razorpay == null) {
       throw Exception('Razorpay not initialized. Call initialize() first.');
     }
     _razorpay!.open(options);
   }
 
+  @override
+  Future<void> processPayment({
+    required Map<String, dynamic> options,
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
+  }) async {
+    initialize(onSuccess: onSuccess, onError: onError);
+    startPayment(options);
+  }
+
   /// Disposes of the Razorpay instance.
-  static void dispose() {
+  @override
+  void dispose() {
     if (_razorpay != null) {
       _razorpay!.clear();
       _razorpay = null;

@@ -4,7 +4,9 @@
         android:label="ks_pay_example"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        tools:replace="android:label">
+        tools:replace="android:label"
+        android:usesCleartextTraffic="true"
+        >
         <activity
             android:name=".MainActivity"
             android:exported="true"

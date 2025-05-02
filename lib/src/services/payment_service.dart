@@ -11,74 +11,132 @@ typedef PaymentSuccessCallback = void Function(PaymentResponse response);
 /// Callback invoked on payment failure.
 typedef PaymentErrorCallback = void Function(PaymentError error);
 
+/// Interface for payment gateway services
+abstract class PaymentGateway {
+  Future<void> processPayment({
+    required Map<String, dynamic> options,
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
+  });
+
+  void dispose();
+}
+
+/// Configuration for payment service
+class PaymentServiceConfig {
+  final String apiEndpoint;
+  final Map<String, String> defaultHeaders;
+
+  const PaymentServiceConfig({
+    this.apiEndpoint =
+        'https://qa-ks-pay-openapi.p2eppl.com/transaction/process',
+    this.defaultHeaders = const {'origin': 'kspay-flutter-v1'},
+  });
+}
+
 /// Main service to handle payments.
 class PaymentService {
+  final http.Client _httpClient;
+  final RazorpayService _razorpayService;
+  final PayUService _payuService;
+  final PaymentServiceConfig _config;
+
+  /// Creates a new payment service instance with dependencies
+  PaymentService({
+    http.Client? httpClient,
+    RazorpayService? razorpayService,
+    PayUService? payuService,
+    PaymentServiceConfig? config,
+  })  : _httpClient = httpClient ?? http.Client(),
+        _razorpayService = razorpayService ?? RazorpayService(),
+        _payuService = payuService ?? PayUService(),
+        _config = config ?? const PaymentServiceConfig();
+
   /// Processes the payment by fetching details from backend and invoking appropriate SDK.
-  static Future<void> processPayment({
+  Future<void> processPayment({
     required String signature,
     required PaymentSuccessCallback onSuccess,
     required PaymentErrorCallback onError,
   }) async {
     try {
-      final url =
-          Uri.parse('https://qa-ks-pay-openapi.p2eppl.com/transaction/process');
-      // 1: Fetch payment details from backend
-      final response = await http.post(
-        url,
-        headers: {'x-signature': signature, 'origin': 'kspay-flutter-v1'},
-      );
-
-      if (response.statusCode != 201) {
-        onError(PaymentError(
-          code: response.statusCode,
-          message: 'Backend error: ${response.body}',
-        ));
-        return;
-      }
-
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final paymentType = data['result']['gateway'] as String;
-      final paymentOptions = data['result']['details'] as Map<String, dynamic>;
-
-      // 2: Route to appropriate SDK
-      switch (paymentType.toLowerCase()) {
-        case 'razorpay':
-          await _processRazorpayPayment(paymentOptions, onSuccess, onError);
-          break;
-        case 'payu':
-          await _processPayUPayment(paymentOptions, onSuccess, onError);
-          break;
-        default:
-          onError(PaymentError(
-            code: -1,
-            message: 'Unsupported payment type: $paymentType',
-          ));
-      }
+      final paymentData = await _fetchPaymentDetails(signature);
+      await _routeToPaymentGateway(paymentData, onSuccess, onError);
     } catch (e) {
       onError(PaymentError(code: -2, message: e.toString()));
     }
   }
 
-  /// Processes a payment through Razorpay.
-  static Future<void> _processRazorpayPayment(
-    Map<String, dynamic> options,
+  /// Fetches payment details from the backend
+  Future<Map<String, dynamic>> _fetchPaymentDetails(String signature) async {
+    final url = Uri.parse(_config.apiEndpoint);
+    final headers = {
+      'x-signature': signature,
+      ..._config.defaultHeaders,
+    };
+
+    final response = await _httpClient.post(url, headers: headers);
+
+    if (response.statusCode != 201) {
+      throw PaymentError(
+        code: response.statusCode,
+        message: 'Backend error: ${response.body}',
+      );
+    }
+
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// Routes the payment to the appropriate gateway
+  Future<void> _routeToPaymentGateway(
+    Map<String, dynamic> data,
     PaymentSuccessCallback onSuccess,
     PaymentErrorCallback onError,
   ) async {
-    RazorpayService.initialize(
+    final paymentType = data['result']['gateway'] as String;
+
+    switch (paymentType.toLowerCase()) {
+      case 'razorpay':
+        await _processRazorpayPayment(data['result'], onSuccess, onError);
+        break;
+      case 'payu':
+        final paymentOptions =
+            data['result']['details'] as Map<String, dynamic>;
+        await _processPayUPayment(paymentOptions, onSuccess, onError);
+        break;
+      default:
+        onError(PaymentError(
+          code: -1,
+          message: 'Unsupported payment type: $paymentType',
+        ));
+    }
+  }
+
+  /// Processes a payment through Razorpay.
+  Future<void> _processRazorpayPayment(
+    Map<String, dynamic> paymentOptions,
+    PaymentSuccessCallback onSuccess,
+    PaymentErrorCallback onError,
+  ) async {
+    final options = {
+      'key': paymentOptions['clientId'],
+      'amount': paymentOptions['amount'],
+      'order_id': paymentOptions['providerOrderId'],
+    };
+
+    _razorpayService.initialize(
       onSuccess: onSuccess,
       onError: onError,
     );
-    RazorpayService.startPayment(options);
+    _razorpayService.startPayment(options);
   }
 
   /// Processes a payment through PayU.
-  static Future<void> _processPayUPayment(
+  Future<void> _processPayUPayment(
     Map<String, dynamic> options,
     PaymentSuccessCallback onSuccess,
     PaymentErrorCallback onError,
   ) async {
-    await PayUService.processPayment(
+    await _payuService.processPayment(
       options: options['initiateTransaction'] as Map<String, dynamic>,
       onSuccess: onSuccess,
       onError: onError,
@@ -86,7 +144,8 @@ class PaymentService {
   }
 
   /// Disposes of payment gateway resources.
-  static void dispose() {
-    RazorpayService.dispose();
+  void dispose() {
+    _razorpayService.dispose();
+    _httpClient.close();
   }
 }

@@ -10,13 +10,16 @@ class KsPayImpl implements KsPay {
   factory KsPayImpl() => _instance;
 
   // Private constructor for singleton pattern
-  KsPayImpl._internal();
+  KsPayImpl._internal() {
+    _paymentService = PaymentService();
+  }
 
   // Static getter to access the singleton instance
   static KsPay get instance => _instance;
 
   // Private variables to store payment information
   String? _signature;
+  late final PaymentService _paymentService;
 
   @override
   Future<void> initialize({
@@ -34,7 +37,7 @@ class KsPayImpl implements KsPay {
       throw Exception('KsPay not initialized. Call initialize() first.');
     }
 
-    await PaymentService.processPayment(
+    await _paymentService.processPayment(
       signature: _signature!,
       onSuccess: onSuccess,
       onError: onError,
@@ -43,7 +46,7 @@ class KsPayImpl implements KsPay {
 
   @override
   void dispose() {
-    PaymentService.dispose();
+    _paymentService.dispose();
     _signature = null;
   }
 }
