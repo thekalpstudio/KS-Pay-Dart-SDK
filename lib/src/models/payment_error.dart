@@ -1,0 +1,14 @@
+/// Represents a payment error.
+class PaymentError {
+  /// Error code from the payment gateway or internal error code.
+  final int code;
+
+  /// Human-readable error message.
+  final String message;
+
+  /// Creates a new [PaymentError] instance.
+  PaymentError({required this.code, required this.message});
+
+  @override
+  String toString() => 'PaymentError(code: $code, message: $message)';
+}
