@@ -1,0 +1,2 @@
+/Users/akash/projects/KS-Pay-Dart-SDK/example/android/app/.cxx/Debug/161c5766/x86/CMakeFiles/edit_cache.dir
+/Users/akash/projects/KS-Pay-Dart-SDK/example/android/app/.cxx/Debug/161c5766/x86/CMakeFiles/rebuild_cache.dir
