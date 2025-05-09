@@ -146,6 +146,7 @@ class PaymentService {
   /// Disposes of payment gateway resources.
   void dispose() {
     _razorpayService.dispose();
+    _payuService.dispose();
     _httpClient.close();
   }
 }

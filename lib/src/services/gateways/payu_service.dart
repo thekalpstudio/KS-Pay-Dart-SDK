@@ -1,30 +1,21 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'package:ks_pay/ks_pay.dart';
 import 'package:payu_checkoutpro_flutter/PayUConstantKeys.dart';
 import 'package:payu_checkoutpro_flutter/payu_checkoutpro_flutter.dart';
-import 'package:http/http.dart' as http;
 import '../payment_service.dart';
-
-class PayUHashConfig {
-  final String apiEndpoint;
-  final Map<String, String> defaultHeaders;
-  const PayUHashConfig({
-    this.apiEndpoint = 'https://qa-ks-pay-openapi.p2eppl.com/payU/hash',
-    this.defaultHeaders = const {'origin': 'kspay-flutter-v1'},
-  });
-}
+import 'payu_hash_service.dart';
 
 /// Service for handling PayU payments.
 class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
   PayUCheckoutProFlutter? _checkoutPro;
   PaymentSuccessCallback? _onSuccess;
   PaymentErrorCallback? _onError;
-  final PayUHashConfig _config = const PayUHashConfig();
+  final PayUHashService _hashService;
   String? _txnId;
 
-  /// Creates an instance of PayUService
-  PayUService();
+  /// Creates an instance of PayUService with optional custom hash service
+  PayUService({PayUHashService? hashService})
+      : _hashService = hashService ?? PayUHashService();
 
   /// Initializes the PayU service with callbacks for payment results.
   void initialize({
@@ -108,7 +99,10 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
     }
 
     try {
-      final hashResponse = await generateHashForTransaction(response: response);
+      final hashResponse = await _hashService.generateHashForTransaction(
+        txnId: _txnId!,
+        response: response,
+      );
       _checkoutPro?.hashGenerated(hash: hashResponse);
     } catch (e, stackTrace) {
       log('Error generating hash: $e', stackTrace: stackTrace);
@@ -179,36 +173,6 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
           message: responseMap['errorMsg'] ?? 'Payment processing error',
         ),
       );
-    }
-  }
-
-  /// generate hash for transaction
-  Future<Map<String, dynamic>> generateHashForTransaction(
-      {required Map response}) async {
-    try {
-      log('Generating hash for txnId: $_txnId with data: $response');
-
-      final url = Uri.parse('${_config.apiEndpoint}/$_txnId');
-
-      final result = await http.post(
-        url,
-        headers: _config.defaultHeaders,
-        body: response,
-      );
-
-      if (result.statusCode != 201) {
-        throw Exception(
-          'Failed to generate hash: ${result.body}',
-        );
-      }
-
-      final decodedResponse = json.decode(result.body);
-      final hashName = response[PayUHashConstantsKeys.hashName];
-      return {
-        hashName: decodedResponse['result'],
-      };
-    } catch (e) {
-      rethrow;
     }
   }
 
