@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 /// Configuration for PayU hash generation service
@@ -31,8 +30,6 @@ class PayUHashService {
     required Map response,
   }) async {
     try {
-      log('Generating hash for txnId: $txnId with data: $response');
-
       final url = Uri.parse('${_config.apiEndpoint}/$txnId');
 
       final result = await http.post(
@@ -48,8 +45,7 @@ class PayUHashService {
       }
 
       final decodedResponse = json.decode(result.body);
-      final hashName = response[
-          'hashName']; // Using string directly instead of constant to avoid dependency
+      final hashName = response['hashName'];
 
       return {
         hashName: decodedResponse['result'],

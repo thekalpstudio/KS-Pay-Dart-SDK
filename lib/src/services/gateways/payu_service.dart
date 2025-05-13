@@ -48,7 +48,7 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
         _onSuccess = onSuccess;
         _onError = onError;
       }
-
+      log('Processing payment with options: $options');
       // Prepare payment parameters
       final Map<String, dynamic> paymentParams = {
         PayUPaymentParamKey.key: options['key'] ?? '',
@@ -68,6 +68,7 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
             'https://www.payumoney.com/mobileapp/payumoney/success.php',
         PayUPaymentParamKey.ios_furl: options['furl'] ??
             'https://www.payumoney.com/mobileapp/payumoney/failure.php',
+        PayUPaymentParamKey.userCredential: options['email'] ?? '',
       };
 
       // Prepare checkout configuration
@@ -103,6 +104,7 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
         txnId: _txnId!,
         response: response,
       );
+      log('Hash generated: $hashResponse');
       _checkoutPro?.hashGenerated(hash: hashResponse);
     } catch (e, stackTrace) {
       log('Error generating hash: $e', stackTrace: stackTrace);
