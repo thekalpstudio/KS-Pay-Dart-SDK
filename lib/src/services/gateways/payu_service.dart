@@ -42,7 +42,7 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
         initialize(
           onSuccess: onSuccess,
           onError: onError,
-          txnId: options['txnid'] as String? ?? '',
+          txnId: options['txnid'],
         );
       } else {
         _onSuccess = onSuccess;
@@ -51,24 +51,20 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
       log('Processing payment with options: $options');
       // Prepare payment parameters
       final Map<String, dynamic> paymentParams = {
-        PayUPaymentParamKey.key: options['key'] ?? '',
-        PayUPaymentParamKey.amount: options['amount'] ?? '0',
-        PayUPaymentParamKey.productInfo: options['productinfo'] ?? 'kspay',
-        PayUPaymentParamKey.firstName: options['firstname'] ?? 'Customer',
-        PayUPaymentParamKey.email: options['email'] ?? 'customer@example.com',
-        PayUPaymentParamKey.phone: options['phone'] ?? '9999999999',
+        PayUPaymentParamKey.key: options['key'],
+        PayUPaymentParamKey.amount: options['amount'].toString(),
+        PayUPaymentParamKey.productInfo: options['productinfo'],
+        PayUPaymentParamKey.firstName: options['firstname'],
+        PayUPaymentParamKey.email: options['email'],
+        PayUPaymentParamKey.phone: options['phone'],
         PayUPaymentParamKey.environment: '1', // 0 for production, 1 for test
-        PayUPaymentParamKey.transactionId:
-            options['txnid'] ?? 'txn_${DateTime.now().millisecondsSinceEpoch}',
-        PayUPaymentParamKey.android_surl: options['surl'] ??
-            'https://www.payumoney.com/mobileapp/payumoney/success.php',
-        PayUPaymentParamKey.android_furl: options['furl'] ??
-            'https://www.payumoney.com/mobileapp/payumoney/failure.php',
-        PayUPaymentParamKey.ios_surl: options['surl'] ??
-            'https://www.payumoney.com/mobileapp/payumoney/success.php',
-        PayUPaymentParamKey.ios_furl: options['furl'] ??
-            'https://www.payumoney.com/mobileapp/payumoney/failure.php',
-        PayUPaymentParamKey.userCredential: options['email'] ?? '',
+        PayUPaymentParamKey.transactionId: options['txnid'],
+        PayUPaymentParamKey.android_surl: options['surl'],
+        PayUPaymentParamKey.android_furl: options['furl'],
+        PayUPaymentParamKey.ios_surl: options['surl'],
+        PayUPaymentParamKey.ios_furl: options['furl'],
+        PayUPaymentParamKey.userCredential:
+            "${options['key']}:${options['email']}",
       };
 
       // Prepare checkout configuration
