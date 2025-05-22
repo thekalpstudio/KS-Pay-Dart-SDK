@@ -57,11 +57,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
-    await ksPay.initialize(
-      signature: signature,
-    );
-
     await ksPay.startPayment(
+      signature: signature,
       onSuccess: (response) {
         setState(() {
           _isLoading = false;
@@ -90,15 +87,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
       url,
       headers: {
         'Content-Type': 'application/json',
-        'accessKey': '<<YOUR ACCESS KEY>>',
-        'secretKey': '<<YOUR SECRET KEY>>',
+        'accessKey': 'kspay_test_bfc4af6909b9f6b86a5ca688',
+        'secretKey':
+            '8fd79d440910907d041d059a07d558251f27b917bd850535885b66879a2611a6',
       },
       body: json.encode({
         "currencyId": "c_p4VJNYJPhK",
         // "paymentMethodId": null,
         "amount": 1,
         "referenceNumber": reference,
-        "appId": "<<YOUR APP ID>>",
+        "appId": "ap_1Xp0qtsS2",
         "redirectUrl": "https://sparkling-alfajores-df7506.netlify.app/success",
         "interfaceType": "sdk"
       }),

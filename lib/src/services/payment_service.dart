@@ -56,7 +56,7 @@ class PaymentService {
   Future<void> processPayment({
     required String signature,
     required PaymentSuccessCallback onSuccess,
-    required PaymentErrorCallback onError, 
+    required PaymentErrorCallback onError,
   }) async {
     try {
       final paymentData = await _fetchPaymentDetails(signature);
@@ -99,8 +99,7 @@ class PaymentService {
         await _processRazorpayPayment(data['result'], onSuccess, onError);
         break;
       case 'payu':
-        final paymentOptions =
-            data['result']['details'] as Map<String, dynamic>;
+        final paymentOptions = data['result'] as Map<String, dynamic>;
         await _processPayUPayment(paymentOptions, onSuccess, onError);
         break;
       default:
@@ -132,12 +131,12 @@ class PaymentService {
 
   /// Processes a payment through PayU.
   Future<void> _processPayUPayment(
-    Map<String, dynamic> options,
+    Map<String, dynamic> data,
     PaymentSuccessCallback onSuccess,
     PaymentErrorCallback onError,
   ) async {
     await _payuService.processPayment(
-      options: options['initiateTransaction'] as Map<String, dynamic>,
+      options: data,
       onSuccess: onSuccess,
       onError: onError,
     );

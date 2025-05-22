@@ -37,34 +37,35 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
     required PaymentErrorCallback onError,
   }) async {
     try {
+      final data = options['details']['initiateTransaction'];
+
       // Initialize if not already initialized
       if (_checkoutPro == null) {
         initialize(
           onSuccess: onSuccess,
           onError: onError,
-          txnId: options['txnid'],
+          txnId: options['altTxnId'],
         );
       } else {
         _onSuccess = onSuccess;
         _onError = onError;
       }
-      log('Processing payment with options: $options');
+      log('Processing payment with options: $data');
       // Prepare payment parameters
       final Map<String, dynamic> paymentParams = {
-        PayUPaymentParamKey.key: options['key'],
-        PayUPaymentParamKey.amount: options['amount'].toString(),
-        PayUPaymentParamKey.productInfo: options['productinfo'],
-        PayUPaymentParamKey.firstName: options['firstname'],
-        PayUPaymentParamKey.email: options['email'],
-        PayUPaymentParamKey.phone: options['phone'],
+        PayUPaymentParamKey.key: data['key'],
+        PayUPaymentParamKey.amount: data['amount'].toString(),
+        PayUPaymentParamKey.productInfo: data['productinfo'],
+        PayUPaymentParamKey.firstName: data['firstname'],
+        PayUPaymentParamKey.email: data['email'],
+        PayUPaymentParamKey.phone: data['phone'],
         PayUPaymentParamKey.environment: '1', // 0 for production, 1 for test
-        PayUPaymentParamKey.transactionId: options['txnid'],
-        PayUPaymentParamKey.android_surl: options['surl'],
-        PayUPaymentParamKey.android_furl: options['furl'],
-        PayUPaymentParamKey.ios_surl: options['surl'],
-        PayUPaymentParamKey.ios_furl: options['furl'],
-        PayUPaymentParamKey.userCredential:
-            "${options['key']}:${options['email']}",
+        PayUPaymentParamKey.transactionId: options['altTxnId'],
+        PayUPaymentParamKey.android_surl: data['surl'],
+        PayUPaymentParamKey.android_furl: data['furl'],
+        PayUPaymentParamKey.ios_surl: data['surl'],
+        PayUPaymentParamKey.ios_furl: data['furl'],
+        PayUPaymentParamKey.userCredential: "${data['key']}:${data['email']}",
       };
 
       // Prepare checkout configuration

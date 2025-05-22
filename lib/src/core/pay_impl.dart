@@ -21,21 +21,15 @@ class KsPayImpl implements KsPay {
   String? _signature;
   late final PaymentService _paymentService;
 
-  @override
-  Future<void> initialize({
-    required String signature,
-  }) async {
-    _signature = signature;
-  }
+
 
   @override
   Future<void> startPayment({
+    required String signature,
     required void Function(PaymentResponse) onSuccess,
     required void Function(PaymentError) onError,
   }) async {
-    if (_signature == null) {
-      throw Exception('KsPay not initialized. Call initialize() first.');
-    }
+     _signature = signature;
 
     await _paymentService.processPayment(
       signature: _signature!,
