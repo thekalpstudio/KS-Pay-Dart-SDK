@@ -6,8 +6,10 @@ class PaymentError {
   /// Human-readable error message.
   final String message;
 
+  final dynamic rawError;
+
   /// Creates a new [PaymentError] instance.
-  PaymentError({required this.code, required this.message});
+  PaymentError({required this.code, required this.message, this.rawError});
 
   @override
   String toString() => 'PaymentError(code: $code, message: $message)';

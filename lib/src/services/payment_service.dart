@@ -120,9 +120,10 @@ class PaymentService {
       'key': paymentOptions['clientId'],
       'amount': paymentOptions['amount'],
       'order_id': paymentOptions['providerOrderId'],
+      'config': paymentOptions['config'] ?? {},
     };
 
-    _razorpayService.initialize(
+    _razorpayService.configureHandlers(
       onSuccess: onSuccess,
       onError: onError,
     );

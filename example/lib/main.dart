@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'KS Pay Example',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -22,6 +23,12 @@ class MyApp extends StatelessWidget {
       home: const PaymentScreen(),
     );
   }
+}
+
+class PaymentMethod {
+  final String id;
+  final String name;
+  PaymentMethod(this.id, this.name);
 }
 
 class PaymentScreen extends StatefulWidget {
@@ -38,6 +45,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
     text: '',
   );
 
+  final List<PaymentMethod> paymentMethods = [
+    PaymentMethod('null', 'All'),
+    PaymentMethod('pm_otIr9SB6P', 'WALLET'),
+    PaymentMethod('pm_MCidJcKGx', 'NET BANKING'),
+    // PaymentMethod('pm_2pvYs5lEL', 'DEBIT CARD'),
+    // PaymentMethod('pm_hnztyNEt3', 'CREDIT CARD'),
+    // PaymentMethod('pm_aVjlZXY5r', 'UPI'),
+    // PaymentMethod('pm_3TPPxTM15', 'PAY LATER'),
+  ];
+
+  String? selectedPaymentMethodId;
+
   final KsPay ksPay = KsPay.instance;
 
   Future<void> _processPayment() async {
@@ -52,7 +71,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (signature.isEmpty) {
       setState(() {
         _isLoading = false;
-        _paymentStatus = 'Error: Signature cannot be empty';
       });
       return;
     }
@@ -80,33 +98,48 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> getSignature() async {
-    String reference = generateUniqueString(16);
-    final url =
-        Uri.parse('https://qa-ks-pay-openapi.p2eppl.com/transaction/initiate');
-    final result = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'accessKey': 'kspay_test_bfc4af6909b9f6b86a5ca688',
-        'secretKey':
-            '8fd79d440910907d041d059a07d558251f27b917bd850535885b66879a2611a6',
-      },
-      body: json.encode({
-        "currencyId": "c_p4VJNYJPhK",
-        // "paymentMethodId": null,
-        "amount": 1,
-        "referenceNumber": reference,
-        "appId": "ap_1Xp0qtsS2",
-        "redirectUrl": "https://sparkling-alfajores-df7506.netlify.app/success",
-        "interfaceType": "sdk"
-      }),
-    );
+    try {
+      setState(() {
+        _signatureController.text = '';
+      });
 
-    final signature = json.decode(result.body);
+      String reference = generateUniqueString(16);
+      final url = Uri.parse(
+          'https://qa-ks-pay-openapi.p2eppl.com/transaction/initiate');
+      final result = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'accessKey': 'kspay_test_bfc4af6909b9f6b86a5ca688',
+          'secretKey':
+              '8fd79d440910907d041d059a07d558251f27b917bd850535885b66879a2611a6',
+        },
+        body: json.encode({
+          "currencyId": "c_p4VJNYJPhK",
+          if (selectedPaymentMethodId.toString() != 'null')
+            "paymentMethodId": selectedPaymentMethodId ?? 'pm_MCidJcKGx',
+          "amount": 1,
+          "referenceNumber": reference,
+          "appId": "ap_1Xp0qtsS2",
+          "redirectUrl":
+              "https://sparkling-alfajores-df7506.netlify.app/success",
+          "interfaceType": "sdk"
+        }),
+      );
 
-    setState(() {
-      _signatureController.text = signature['result'];
-    });
+      final signature = json.decode(result.body);
+      setState(() {
+        if (signature['result'] != null) {
+          _signatureController.text = signature['result'];
+        } else {
+          _paymentStatus = 'Error: ${signature['message']}';
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -123,44 +156,68 @@ class _PaymentScreenState extends State<PaymentScreen> {
       appBar: AppBar(
         title: const Text('KS Pay Example'),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Payment Status:',
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(_paymentStatus),
-              ),
-              const SizedBox(height: 30),
-              TextField(
-                controller: _signatureController,
-                decoration: const InputDecoration(
-                  labelText: 'Signature',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (_isLoading)
-                const CircularProgressIndicator()
-              else
-                ElevatedButton(
-                  onPressed: _processPayment,
-                  child: const Text('Make Payment'),
-                ),
-              const SizedBox(height: 20),
-            ],
+      body: ListView(
+        padding: const EdgeInsets.all(20.0),
+        children: [
+          Text(
+            'Select Payment Method:',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
+          const SizedBox(height: 10),
+          ...paymentMethods.map((method) => RadioListTile<String>(
+                title: Text(method.name),
+                value: method.id,
+                groupValue: selectedPaymentMethodId,
+                onChanged: (String? value) {
+                  setState(() {
+                    selectedPaymentMethodId = value;
+                  });
+                },
+              )),
+          const SizedBox(height: 20),
+          Text(
+            'Payment Status:',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.grey[50],
+            ),
+            child: Text(
+              _paymentStatus,
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 30),
+          TextField(
+            controller: _signatureController,
+            decoration: const InputDecoration(
+              labelText: 'Signature',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 20),
+          if (_isLoading)
+            Center(child: const CircularProgressIndicator())
+          else
+            ElevatedButton(
+              onPressed: _processPayment,
+              child: const Text('Make Payment'),
+            ),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }
