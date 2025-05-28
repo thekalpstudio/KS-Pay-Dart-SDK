@@ -99,8 +99,7 @@ class PaymentService {
         await _processRazorpayPayment(data['result'], onSuccess, onError);
         break;
       case 'payu':
-        final paymentOptions =
-            data['result']['details'] as Map<String, dynamic>;
+        final paymentOptions = data['result'] as Map<String, dynamic>;
         await _processPayUPayment(paymentOptions, onSuccess, onError);
         break;
       default:
@@ -121,9 +120,10 @@ class PaymentService {
       'key': paymentOptions['clientId'],
       'amount': paymentOptions['amount'],
       'order_id': paymentOptions['providerOrderId'],
+      'config': paymentOptions['config'] ?? {},
     };
 
-    _razorpayService.initialize(
+    _razorpayService.configureHandlers(
       onSuccess: onSuccess,
       onError: onError,
     );
@@ -132,12 +132,12 @@ class PaymentService {
 
   /// Processes a payment through PayU.
   Future<void> _processPayUPayment(
-    Map<String, dynamic> options,
+    Map<String, dynamic> data,
     PaymentSuccessCallback onSuccess,
     PaymentErrorCallback onError,
   ) async {
     await _payuService.processPayment(
-      options: options['initiateTransaction'] as Map<String, dynamic>,
+      options: data,
       onSuccess: onSuccess,
       onError: onError,
     );
@@ -146,6 +146,7 @@ class PaymentService {
   /// Disposes of payment gateway resources.
   void dispose() {
     _razorpayService.dispose();
+    _payuService.dispose();
     _httpClient.close();
   }
 }
