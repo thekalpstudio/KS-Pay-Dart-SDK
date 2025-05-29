@@ -19,6 +19,8 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
   static const String _merchantName = "kspay";
   static const String _netbankingMethod = 'NB';
   static const String _walletMethod = 'WALLET';
+  static const String _debitCardMethod = 'CARD';
+  static const String _upiMethod = 'UPI';
 
   /// Creates an instance of PayUService.
   ///
@@ -137,6 +139,9 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
     const Map<String, String> paymentMethodMap = {
       'netbanking': _netbankingMethod,
       'cashcard': _walletMethod,
+      'debitcard': _debitCardMethod,
+      'creditcard': _debitCardMethod,
+      'upi': _upiMethod,
     };
     return paymentMethodMap[methodKey.toLowerCase()];
   }

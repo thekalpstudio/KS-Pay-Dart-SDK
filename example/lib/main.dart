@@ -49,10 +49,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
     PaymentMethod('null', 'All'),
     PaymentMethod('pm_otIr9SB6P', 'WALLET'),
     PaymentMethod('pm_MCidJcKGx', 'NET BANKING'),
-    // PaymentMethod('pm_2pvYs5lEL', 'DEBIT CARD'),
-    // PaymentMethod('pm_hnztyNEt3', 'CREDIT CARD'),
-    // PaymentMethod('pm_aVjlZXY5r', 'UPI'),
-    // PaymentMethod('pm_3TPPxTM15', 'PAY LATER'),
+    PaymentMethod('pm_2pvYs5lEL', 'DEBIT CARD'),
+    PaymentMethod('pm_hnztyNEt3', 'CREDIT CARD'),
+    PaymentMethod('pm_aVjlZXY5r', 'UPI'),
+    PaymentMethod('pm_3TPPxTM15', 'PAY LATER'),
   ];
 
   String? selectedPaymentMethodId;
