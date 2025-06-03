@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ks_pay/ks_pay.dart';
+import 'package:ks_pay/src/utils/api_constants.dart';
 
 import 'gateways/razorpay_service.dart';
 import 'gateways/payu_service.dart';
@@ -28,8 +29,7 @@ class PaymentServiceConfig {
   final Map<String, String> defaultHeaders;
 
   const PaymentServiceConfig({
-    this.apiEndpoint =
-        'https://qa-ks-pay-openapi.p2eppl.com/transaction/process',
+    this.apiEndpoint = '${ApiConstants.baseUrl}/transaction/process',
     this.defaultHeaders = const {'origin': 'kspay-flutter-v1'},
   });
 }
