@@ -1,8 +1,8 @@
 import 'dart:developer';
-import 'package:ks_pay/ks_pay.dart'; // Assuming this defines PaymentGateway, PaymentSuccessCallback, PaymentErrorCallback, PaymentResponse, PaymentError
+import 'package:ks_pay/ks_pay.dart';
 import 'package:payu_checkoutpro_flutter/PayUConstantKeys.dart';
 import 'package:payu_checkoutpro_flutter/payu_checkoutpro_flutter.dart';
-import '../payment_service.dart'; // Assuming this is correctly located
+import '../payment_service.dart';
 import 'payu_hash_service.dart';
 
 /// Service for handling PayU payments.
