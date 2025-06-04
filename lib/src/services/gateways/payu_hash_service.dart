@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:ks_pay/src/utils/api_constants.dart';
 
 /// Configuration for PayU hash generation service
 class PayUHashConfig {
@@ -7,7 +8,7 @@ class PayUHashConfig {
   final Map<String, String> defaultHeaders;
 
   const PayUHashConfig({
-    this.apiEndpoint = 'https://qa-ks-pay-openapi.p2eppl.com/payU/hash',
+    this.apiEndpoint = '${ApiConstants.baseUrl}/payU/hash',
     this.defaultHeaders = const {'origin': 'kspay-flutter-v1'},
   });
 }

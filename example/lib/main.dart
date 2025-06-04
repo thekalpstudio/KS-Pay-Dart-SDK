@@ -1,9 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:ks_pay/ks_pay.dart';
-import 'package:http/http.dart' as http;
-import 'package:random_string/random_string.dart';
 
 void main() {
   runApp(const MyApp());
@@ -64,7 +60,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       _isLoading = true;
       _paymentStatus = 'Processing...';
     });
-    await getSignature();
 
     // Use the signature from the text field
     final String signature = _signatureController.text.trim();
@@ -91,55 +86,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
         });
       },
     );
-  }
-
-  String generateUniqueString(int length) {
-    return randomAlphaNumeric(length);
-  }
-
-  Future<void> getSignature() async {
-    try {
-      setState(() {
-        _signatureController.text = '';
-      });
-
-      String reference = generateUniqueString(16);
-      final url = Uri.parse(
-          'https://qa-ks-pay-openapi.p2eppl.com/transaction/initiate');
-      final result = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'accessKey': 'kspay_test_bfc4af6909b9f6b86a5ca688',
-          'secretKey':
-              '8fd79d440910907d041d059a07d558251f27b917bd850535885b66879a2611a6',
-        },
-        body: json.encode({
-          "currencyId": "c_p4VJNYJPhK",
-          if (selectedPaymentMethodId.toString() != 'null')
-            "paymentMethodId": selectedPaymentMethodId ?? 'pm_MCidJcKGx',
-          "amount": 1,
-          "referenceNumber": reference,
-          "appId": "ap_1Xp0qtsS2",
-          "redirectUrl":
-              "https://sparkling-alfajores-df7506.netlify.app/success",
-          "interfaceType": "sdk"
-        }),
-      );
-
-      final signature = json.decode(result.body);
-      setState(() {
-        if (signature['result'] != null) {
-          _signatureController.text = signature['result'];
-        } else {
-          _paymentStatus = 'Error: ${signature['message']}';
-        }
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 
   @override
