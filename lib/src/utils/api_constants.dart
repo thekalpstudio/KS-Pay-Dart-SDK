@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String liveBaseUrl = 'https://stg-ks-pay-openliveapi.p2eppl.com';
+  static const String liveBaseUrl = 'https://pay-open-liveapi.kalp.studio';
   static const String sandboxBaseUrl =
-      'https://stg-ks-pay-opensandboxapi.p2eppl.com';
+      'https://pay-open-sandboxapi.kalp.studio';
 }
