@@ -25,8 +25,14 @@ class PayUService implements PaymentGateway, PayUCheckoutProProtocol {
   /// Creates an instance of PayUService.
   ///
   /// An optional [hashService] can be provided for custom hash generation.
-  PayUService({PayUHashService? hashService})
-      : _hashService = hashService ?? PayUHashService();
+  /// [isSandbox] determines whether to use sandbox environment.
+  PayUService({
+    PayUHashService? hashService,
+    bool isSandbox = false,
+  }) : _hashService = hashService ??
+            PayUHashService(
+              config: PayUHashConfig(isSandbox: isSandbox),
+            );
 
   /// Initializes the PayU service and sets up callbacks for payment results.
   ///

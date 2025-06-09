@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ks_pay/ks_pay.dart';
+import 'package:ks_pay/src/utils/api_constants.dart';
 
 import 'gateways/razorpay_service.dart';
 import 'gateways/payu_service.dart';
@@ -26,12 +27,14 @@ abstract class PaymentGateway {
 class PaymentServiceConfig {
   final String apiEndpoint;
   final Map<String, String> defaultHeaders;
+  final bool isSandbox;
 
   const PaymentServiceConfig({
-    this.apiEndpoint =
-        'https://qa-ks-pay-openapi.p2eppl.com/transaction/process',
+    String? apiEndpoint,
     this.defaultHeaders = const {'origin': 'kspay-flutter-v1'},
-  });
+    this.isSandbox = false,
+  }) : apiEndpoint = apiEndpoint ??
+            '${isSandbox ? ApiConstants.sandboxBaseUrl : ApiConstants.liveBaseUrl}/transaction/process';
 }
 
 /// Main service to handle payments.
@@ -49,8 +52,9 @@ class PaymentService {
     PaymentServiceConfig? config,
   })  : _httpClient = httpClient ?? http.Client(),
         _razorpayService = razorpayService ?? RazorpayService(),
-        _payuService = payuService ?? PayUService(),
-        _config = config ?? const PaymentServiceConfig();
+        _config = config ?? const PaymentServiceConfig(),
+        _payuService =
+            payuService ?? PayUService(isSandbox: config?.isSandbox ?? false);
 
   /// Processes the payment by fetching details from backend and invoking appropriate SDK.
   Future<void> processPayment({
