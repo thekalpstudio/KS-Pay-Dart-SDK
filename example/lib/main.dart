@@ -42,18 +42,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     text: '',
   );
 
-  final List<PaymentMethod> paymentMethods = [
-    PaymentMethod('null', 'All'),
-    PaymentMethod('pm_otIr9SB6P', 'WALLET'),
-    PaymentMethod('pm_MCidJcKGx', 'NET BANKING'),
-    PaymentMethod('pm_2pvYs5lEL', 'DEBIT CARD'),
-    PaymentMethod('pm_hnztyNEt3', 'CREDIT CARD'),
-    PaymentMethod('pm_aVjlZXY5r', 'UPI'),
-    PaymentMethod('pm_3TPPxTM15', 'PAY LATER'),
-  ];
-
-  String? selectedPaymentMethodId;
-
   final KsPay ksPay = KsPay.instance;
 
   Future<void> _processPayment() async {
@@ -112,25 +100,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20.0),
         children: [
-          Text(
-            'Select Payment Method:',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 10),
-          ...paymentMethods.map((method) => RadioListTile<String>(
-                title: Text(method.name),
-                value: method.id,
-                groupValue: selectedPaymentMethodId,
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedPaymentMethodId = value;
-                  });
-                },
-              )),
-          const SizedBox(height: 20),
           Text(
             'Payment Status:',
             style: TextStyle(
