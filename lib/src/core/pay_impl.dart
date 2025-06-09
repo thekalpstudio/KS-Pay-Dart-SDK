@@ -19,17 +19,19 @@ class KsPayImpl implements KsPay {
 
   // Private variables to store payment information
   String? _signature;
-  late final PaymentService _paymentService;
-
-
+  late PaymentService _paymentService;
 
   @override
   Future<void> startPayment({
     required String signature,
     required void Function(PaymentResponse) onSuccess,
     required void Function(PaymentError) onError,
+    bool isSandbox = false,
   }) async {
-     _signature = signature;
+    _signature = signature;
+    _paymentService = PaymentService(
+      config: PaymentServiceConfig(isSandbox: isSandbox),
+    );
 
     await _paymentService.processPayment(
       signature: _signature!,
@@ -41,6 +43,5 @@ class KsPayImpl implements KsPay {
   @override
   void dispose() {
     _paymentService.dispose();
-    _signature = null;
   }
 }

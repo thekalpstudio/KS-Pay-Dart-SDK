@@ -77,6 +77,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     await ksPay.startPayment(
       signature: signature,
+      isSandbox: true,
       onSuccess: (response) {
         setState(() {
           _isLoading = false;
