@@ -53,6 +53,16 @@ Add the following to your `Info.plist`:
     <key>NSAllowsArbitraryLoads</key>
     <true/>
 </dict>
+<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>phonepe</string>
+		<string>paytm</string>
+		<string>tez</string>
+		<string>credpay</string>
+		<string>bhim</string>
+	</array>
+<key>NSCameraUsageDescription</key>
+<string>We need camera access to scan your card details.</string>
 ```
 
 ## Usage
@@ -63,9 +73,9 @@ Add the following to your `Info.plist`:
 import 'package:ks_pay/ks_pay.dart';
 
 // Process a payment
-await KsPay.processPayment(
-  orderToken: 'your_order_token',
-  backendUrl: 'https://api.yourdomain.com/payment/init',
+await KsPay.instance.processPayment(
+  signature: 'your_signature',
+  isSandbox: false,
   onSuccess: (response) {
     print('Payment successful: ${response.paymentId}');
     // Handle success
@@ -78,29 +88,6 @@ await KsPay.processPayment(
 
 // Clean up resources when done
 KsPay.dispose();
-```
-
-### Backend Response Format
-
-Your backend should return a response in the following format:
-
-```json
-{
-  "paymentType": "razorpay", // or "payu"
-  "options": {
-    // Gateway-specific options
-    // For Razorpay:
-    "key": "rzp_test_1234567890",
-    "amount": 50000, // in paise
-    "name": "Your Company",
-    "description": "Test Payment",
-    "prefill": {
-      "contact": "9876543210",
-      "email": "test@example.com"
-    }
-    // For PayU, provide appropriate options
-  }
-}
 ```
 
 ### Handling Cleanup
@@ -121,10 +108,6 @@ void dispose() {
 
 - Razorpay
 - PayU
-
-### Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### License
 

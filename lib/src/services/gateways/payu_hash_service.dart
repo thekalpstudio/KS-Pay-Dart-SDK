@@ -1,15 +1,19 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:ks_pay/src/utils/api_constants.dart';
 
 /// Configuration for PayU hash generation service
 class PayUHashConfig {
   final String apiEndpoint;
   final Map<String, String> defaultHeaders;
+  final bool isSandbox;
 
   const PayUHashConfig({
-    this.apiEndpoint = 'https://qa-ks-pay-openapi.p2eppl.com/payU/hash',
+    String? apiEndpoint,
     this.defaultHeaders = const {'origin': 'kspay-flutter-v1'},
-  });
+    this.isSandbox = false,
+  }) : apiEndpoint = apiEndpoint ??
+            '${isSandbox ? ApiConstants.sandboxBaseUrl : ApiConstants.liveBaseUrl}/payU/hash';
 }
 
 /// Service responsible for generating hashes required for PayU transactions
