@@ -8,10 +8,12 @@ abstract class KsPay {
   /// [signature] is the unique identifier for the payment transaction.
   /// [onSuccess] is called when the payment is successful.
   /// [onError] is called when the payment fails.
+  /// [isSandbox] determines whether to use sandbox environment (default: false)
   Future<void> startPayment({
     required String signature,
     required void Function(PaymentResponse) onSuccess,
     required void Function(PaymentError) onError,
+    bool isSandbox = false,
   });
 
   /// Disposes of payment gateway resources.
